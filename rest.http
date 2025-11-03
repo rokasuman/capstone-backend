@@ -1,0 +1,17 @@
+
+
+// api for adding doctocts 
+POST http://localhost:4000/api/admin/add-doctor
+Content-Type: application/json
+
+{
+  "name": "Dr. Sarah Patel",
+  "email": "sarah.patel@example.com",
+  "image": "https://example.com/doc3.jpg",
+  "speciality": "Dermatologist",
+  "degree": "MBBS",
+  "experience": "1 Years",
+  "about": "Dr. Patel is dedicated to providing effective skin treatments, preventive care, and personalized consultations.",
+  "fees": 30,
+  "password": "securePass123"
+}
