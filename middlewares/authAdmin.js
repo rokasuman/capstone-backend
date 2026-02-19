@@ -7,13 +7,13 @@ const authAdmin = async (req,res,next) =>{
 
         const {atoken} = req.headers
         if(!atoken){
-            res.json({success:false,message:"Not Authroeixed Try Again"})
+            res.json({success:false,message:"Not Authroeixed Try login"})
         }
         
         const token_decode = jwt.verify(atoken,process.env.JWT_SECERT)
 
         if(token_decode !== process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD ){
-            res.json({success:false,message:"Not Authroeixed Try Again"})
+            res.json({success:false,message:"Not Authroeixed Try login"})
         }
         next()
     } catch (error) {

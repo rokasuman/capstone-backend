@@ -11,17 +11,17 @@ const addDoctor = async (req, res) => {
 
     // Check all required fields
     if (!name || !email || !speciality || !degree || !experience || !about || !fees || !password) {
-      return res.status(400).json({ success: false, message: "Missing details" });
+      return res.json({ success: false, message: "Missing details" });
     }
 
     // Validate email
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ success: false, message: "Please enter a valid email" });
+      return res.json({ success: false, message: "Please enter a valid email" });
     }
 
     // Validate password
     if (password.length < 8) {
-      return res.status(400).json({ success: false, message: "Please enter a stronger password" });
+      return res.json({ success: false, message: "Please enter a stronger password" });
     }
 
     // Hash password
@@ -54,10 +54,10 @@ const addDoctor = async (req, res) => {
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
 
-    res.status(201).json({ success: true, message: "New doctor added successfully" });
+    res.json({ success: true, message: "New doctor added successfully" });
   } catch (error) {
     console.error("Error adding doctor:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
@@ -70,11 +70,11 @@ const loginAdmin = async (req, res) => {
       const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
       res.json({ success: true, token });
     } else {
-      res.status(401).json({ success: false, message: "Invalid credentials" });
+      res.json({ success: false, message: "Invalid credentials" });
     }
   } catch (error) {
     console.error("Admin login error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
