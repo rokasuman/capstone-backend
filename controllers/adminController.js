@@ -1,7 +1,9 @@
 import validator from "validator"
 import bcrypt from "bcrypt"
 import doctorModel from "../models/doctorModel.js"
+import jwt from "jsonwebtoken"
 
+//Api to add the doctor/ EP of adding the doctor
 const addDoctor = async (req, res) => {
   try {
 
@@ -69,4 +71,30 @@ const addDoctor = async (req, res) => {
   }
 }
 
-export { addDoctor }
+//Api for admin login 
+const loginAdmin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      // create a proper JWT token
+      const token = jwt.sign(
+        { email: email },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" } // optional: token expires in 2 hours
+      );
+
+      res.json({ success: true, token });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Unauthorized to Login",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { addDoctor, loginAdmin };
