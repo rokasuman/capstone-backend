@@ -5,15 +5,15 @@ POST http://localhost:4000/api/admin/add-doctor
 Content-Type: application/json
 
 {
-  "name": "Dr. Sarah Patel",
-  "email": "sarah.patel@example.com",
-  "image": "https://example.com/doc3.jpg",
-  "speciality": "Dermatologist",
-  "degree": "MBBS",
-  "experience": "1 Years",
-  "about": "Dr. Patel is dedicated to providing effective skin treatments, preventive care, and personalized consultations.",
-  "fees": 30,
-  "password": "securePass123"
+  "name": "Dr. suman roka",
+  "email": "roka11@example.com",
+  "password": "doctorPass789",
+  "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7F6hY0Z9T3Wq5Y3YQ7yP7PqP4nK9t9p9T8g&s",
+  "speciality": "Pediatrician",
+  "degree": "MBBS, MD Pediatrics",
+  "experience": "7 Years",
+  "fees": 60,
+  "about": "Dr. Suman provides comprehensive healthcare services for infants, children, and adolescents with a focus on preventive care."
 }
 
 
@@ -23,6 +23,6 @@ Content-Type: application/json
 
 {
   "email" :"admin@gmail.com",
-  "password" : "admin123",
+  "password" : "admin123"
   
 }

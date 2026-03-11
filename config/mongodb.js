@@ -1,16 +1,11 @@
 import mongoose from "mongoose";
 
-//function to connect with mongoose
-
 const connectDB = async ()=>{
-try {
-    
-    mongoose.connection.on('connected',()=>console.log("database is connected"))
-    await mongoose.connect(`${process.env.MONGODB_URL}/novahealth`)
+    mongoose.connection.on("connected",()=>console.log("Database is Connected"))
+    console.log(process.env.MONGODB_URL
+        
+    )
+    await mongoose.connect(`${process.env.MONGODB_URL}/NovaHealth`)
 
-} catch (error) {
-    console.log(error)
 }
-}
-
 export default connectDB
