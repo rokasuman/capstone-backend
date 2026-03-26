@@ -95,3 +95,11 @@ token : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YjgwYzZkNzc3MWMxNjE3MjR
   "gender":"male",
   "address":"1/55 aubrun, dartbrook"
 }
+
+### api to get all the appointments 
+GET http://localhost:4000/api/admin/appointments
+aToken : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTc3NDUyMTAyOH0.hsGMSappA63Pwh59mC24Xw7B3nb3eRjSDH9FhtUatR0
+
+###api to get doc data in dash 
+GET http://localhost:4000/api/admin/dashboard
+aToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTc3NDUzMDMwMH0.hm83Kt7o1p61Fcg2Mfq1B67v0zQ3Ipf0RyCL49shV_M
