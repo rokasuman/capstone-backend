@@ -103,3 +103,13 @@ aToken : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbS
 ###api to get doc data in dash 
 GET http://localhost:4000/api/admin/dashboard
 aToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTc3NDUzMDMwMH0.hm83Kt7o1p61Fcg2Mfq1B67v0zQ3Ipf0RyCL49shV_M
+
+
+###api to login as Doctor
+POST http://localhost:4000/api/doctor/login
+Content-Type: application/json
+
+{
+"email" :"james@gmail.com",
+"password": "123456789"
+}

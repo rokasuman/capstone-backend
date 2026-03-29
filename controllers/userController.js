@@ -6,6 +6,9 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import Stripe from "stripe" 
+import { sendWelcomeEmail } from "../utils/sendEmail.js";
+import { sendAppointmentEmail } from "../utils/sendEmail.js";
+
 
 //api to register the user
 const registerUser = async (req, res) => {
@@ -43,10 +46,13 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
     };
     const newUser = new userModel(userData);
-
+    //saving in db
     const user = await newUser.save();
-    //creating the token with id
+    //send the email
+    sendWelcomeEmail(user.email,user.name)
 
+
+    //creating the token with id
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
     res.json({ success: true, token });
@@ -177,7 +183,7 @@ const bookAppointment = async (req, res) => {
     if (!userData) {
       return res.json({
         success: false,
-        message: "User not found",
+        message: "Login to book the Appointment",
       });
     }
 
@@ -208,7 +214,6 @@ const bookAppointment = async (req, res) => {
     const docInfoForAppointment = { ...docData.toObject() };
     delete docInfoForAppointment.slot_booked;
 
-  
     const appointmentData = {
       userId,
       docId,
@@ -223,6 +228,16 @@ const bookAppointment = async (req, res) => {
     try {
       const newAppointment = new appointmentModel(appointmentData);
       await newAppointment.save();
+
+      //sending the email
+    sendAppointmentEmail(
+      userData.email,
+      userData.name,
+      docData.name,
+      slotDate,slotTime
+    )
+
+
 
       return res.json({
         success: true,
@@ -292,7 +307,7 @@ const cancelAppointment = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-//api for appointment
+//api for appointment payment 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY )
 
 const createPaymentIntent = async (req,res)=>{
