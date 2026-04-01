@@ -16,7 +16,7 @@ export const sendWelcomeEmail = async (userEmail, userName) => {
       to: userEmail,
       subject: "Welcome to Nova Health Care",
       html: `
-        <h2>Welcome ${userName}</h2>
+        <h2 style="color: green">Welcome ${userName}</h2>
         <p>Your account has been created Successfully.</p>
         <p>You can now login and book appointments with our doctors anytime.</p>
         <br/>
@@ -52,13 +52,13 @@ export const sendAppointmentEmail = async (userEmail,userName,doctorName,date,ti
             <li><b>Date:</b> ${date}</li>
             <li><b>Time:</b> ${time}</li>
         </ul>
-
           <p>Please arrive 10 minutes early.</p>
           <br/>
-
           <p style="color: #555;">
             Thank you for choosing Nova Health Care 
           </p>
+          <p>Kind Regards,</p>
+          <p>Nova Health Care</p>
           </div>
       `
     }
@@ -70,3 +70,4 @@ export const sendAppointmentEmail = async (userEmail,userName,doctorName,date,ti
     
   }
 }
+

@@ -10,13 +10,14 @@ import { sendWelcomeEmail } from "../utils/sendEmail.js";
 import { sendAppointmentEmail } from "../utils/sendEmail.js";
 
 
+
 //api to register the user
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Missing details",
       });
@@ -28,6 +29,8 @@ const registerUser = async (req, res) => {
         message: "Invalid Email",
       });
     }
+   
+    
     //validating the password
     if (password.length < 8) {
       return res.status(400).json({
@@ -57,8 +60,10 @@ const registerUser = async (req, res) => {
 
     res.json({ success: true, token });
   } catch (error) {
-    console.log(error);
-    res.json({ success: true, message: error.message });
+     if(error.code === 11000){
+      return res.json({success: false, message:"Email already exists"})
+     }
+    res.json({ success: false, message: error.message });
   }
 };
 //api for user login
@@ -84,9 +89,7 @@ const loginUser = async (req, res) => {
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
+      return res.json({ success: false, message: "Invalid credentials" });
     }
 
     // Generate JWT
@@ -188,19 +191,16 @@ const bookAppointment = async (req, res) => {
     }
 
   
-    const updatedDoctor = await doctorModel.findOneAndUpdate(
-      {
-        _id: docId,
-        $or: [
-          { [`slot_booked.${slotDate}`]: { $exists: false } },
-          { [`slot_booked.${slotDate}`]: { $ne: slotTime } },
-        ],
-      },
-      {
-        $push: { [`slot_booked.${slotDate}`]: slotTime },
-      },
-      { new: true }
-    );
+   const updatedDoctor = await doctorModel.findOneAndUpdate(
+  {
+    _id: docId,
+    [`slot_booked.${slotDate}`]: { $nin: [slotTime] }, 
+  },
+  {
+    $push: { [`slot_booked.${slotDate}`]: slotTime },
+  },
+  { new: true }
+);
 
     // If slot already taken
     if (!updatedDoctor) {
@@ -284,25 +284,36 @@ const cancelAppointment = async (req, res) => {
 
     const appointmentData = await appointmentModel.findById(appointmentId);
 
-    // verifying the appointment user
-    if (appointmentData.userId !== userId) {
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
+
+    if (appointmentData.userId.toString() !== userId) {
       return res.json({ success: false, message: "Unauthorized Action" });
     }
 
+    
     await appointmentModel.findByIdAndUpdate(appointmentId, { cancel: true });
 
-    // releasing the docSlot
     const { docId, slotDate, slotTime } = appointmentData;
-    const docData = await doctorModel.findById(docId);
 
+    const docData = await doctorModel.findById(docId);
     let slot_booked = docData.slot_booked || {};
+
     if (slot_booked[slotDate]) {
-      slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime);
+      slot_booked[slotDate] = slot_booked[slotDate].filter(
+        (e) => e !== slotTime
+      );
+
+      if (slot_booked[slotDate].length === 0) {
+        delete slot_booked[slotDate];
+      }
     }
 
     await doctorModel.findByIdAndUpdate(docId, { slot_booked });
 
     res.json({ success: true, message: "Appointment Cancelled" });
+
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

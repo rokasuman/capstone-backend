@@ -76,14 +76,26 @@ const appointmentComplete = async (req, res) => {
 
     const appointmentData = await appointmentModel.findById(appointmentId);
 
-    if (appointmentData && appointmentData.docId === docId) {
-      await appointmentModel.findByIdAndUpdate(appointmentId, {
-        isCompleted: true,
-      });
-      return res.json({ success: true, message: "Appointment Completed" });
-    } else {
-      res.json({ success: true, message: "Appointment Mrked" });
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
     }
+
+    //  ObjectId comparison
+    if (appointmentData.docId.toString() !== docId) {
+      return res.json({ success: false, message: "Unauthorized" });
+    }
+
+    // mark completed
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      isCompleted: true,
+    });
+
+    
+    return res.json({
+      success: true,
+      message: "Appointment completed",
+    });
+
   } catch (error) {
     console.error(error);
     return res.json({ success: false, message: error.message });
@@ -96,12 +108,41 @@ const appointmentCancel = async (req, res) => {
 
     const appointmentData = await appointmentModel.findById(appointmentId);
 
-    if (appointmentData && appointmentData.docId === docId) {
-      await appointmentModel.findByIdAndUpdate(appointmentId, { cancel: true });
-      return res.json({ success: true, message: "Appointment cancelled" });
-    } else {
-      return res.json({ success: false, message: "Cancellation Failed" });
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
     }
+
+    //Fix ObjectId comparison
+    if (appointmentData.docId.toString() !== docId) {
+      return res.json({ success: false, message: "Unauthorized" });
+    }
+
+    //  Mark cancelled
+    await appointmentModel.findByIdAndUpdate(appointmentId, { cancel: true });
+
+    // Extract slot details
+    const { slotDate, slotTime } = appointmentData;
+
+    //Get doctor data
+    const docData = await doctorModel.findById(docId);
+    let slot_booked = docData.slot_booked || {};
+
+    // Remove the slot
+    if (slot_booked[slotDate]) {
+      slot_booked[slotDate] = slot_booked[slotDate].filter(
+        (time) => time !== slotTime
+      );
+
+      // Remove empty date
+      if (slot_booked[slotDate].length === 0) {
+        delete slot_booked[slotDate];
+      }
+    }
+
+    await doctorModel.findByIdAndUpdate(docId, { slot_booked });
+
+    return res.json({ success: true, message: "Appointment cancelled & slot released" });
+
   } catch (error) {
     console.error(error);
     return res.json({ success: false, message: error.message });
@@ -124,7 +165,6 @@ const doctorDashboard = async (req, res) => {
         earning += item.amount;
       }
     });
-
     let patients = new Set();
 
     appointments.forEach((item) => {

@@ -9,38 +9,67 @@ import userModel from "../models/userModel.js";
 
 const addDoctor = async (req, res) => {
   try {
-    // Request body data form the user 
-    const { name, email, password, speciality, degree, experience, about, fees } = req.body;
+    // Request body data form the user
+    const {
+      name,
+      email,
+      password,
+      speciality,
+      degree,
+      experience,
+      about,
+      fees,
+    } = req.body;
     const imageFile = req.file;
 
     console.log("body:", req.body);
     console.log("File:", req.file);
 
     // Validate required fields
-    if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees) {
-      return res.status(400).json({ success: false, message: "Missing Details" });
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !speciality ||
+      !degree ||
+      !experience ||
+      !about ||
+      !fees
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing Details" });
     }
 
     if (!imageFile) {
-      return res.status(400).json({ success: false, message: "Image not uploaded" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Image not uploaded" });
     }
 
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(imageFile.path, {
-      folder: "doctor", 
+      folder: "doctor",
     });
-     const imgeUrl = result.secure_url;
+    const imgeUrl = result.secure_url;
     // Remove local file after upload
     fs.unlinkSync(imageFile.path);
 
     // Validate email
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ success: false, message: "Please enter a valid email" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Please enter a valid email" });
     }
 
     // Validate password
     if (password.length < 8) {
-      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Password must be at least 8 characters long",
+        });
     }
 
     // Hash password
@@ -53,7 +82,7 @@ const addDoctor = async (req, res) => {
       email,
       password: hashedPassword,
       speciality,
-      image: imgeUrl, 
+      image: imgeUrl,
       degree,
       experience,
       fees,
@@ -64,18 +93,16 @@ const addDoctor = async (req, res) => {
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
 
-   
     res.status(200).json({
       success: true,
       message: "Doctor added successfully",
-      doctor:newDoctor, 
+      doctor: newDoctor,
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // api to login for admin
 const adminLogin = async (req, res) => {
@@ -108,63 +135,74 @@ const adminLogin = async (req, res) => {
   }
 };
 //api to get all the doctor list in admin pannel without password
-const allDoctors =async (req,res)=>{
-try {
-  const doctors = await doctorModel.find({}).select("-password")
-  res.json({
-    status:200,
-    success:true,
-    doctors
-  })
-} catch (error) {
-  console.log(error)
-  res.json({
-    status:400,
-    success:false,
-    message:"Something went Wrong"
-  })
-}
-}
+const allDoctors = async (req, res) => {
+  try {
+    const doctors = await doctorModel.find({}).select("-password");
+    res.json({
+      status: 200,
+      success: true,
+      doctors,
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      status: 400,
+      success: false,
+      message: "Something went Wrong",
+    });
+  }
+};
 //api to delete by id
-const deleteDoctor = async(req,res)=>{
-  const {id} = req.params;
+const deleteDoctor = async (req, res) => {
+  const { id } = req.params;
   try {
     const doctor = await doctorModel.findById(id);
-    if(!doctor){
+    if (!doctor) {
       res.json({
         status: 404,
-        success:false,
-        message:"Doctor not found"
-      })
+        success: false,
+        message: "Doctor not found",
+      });
     }
     //delete the doctor
-    await doctorModel.findByIdAndDelete(id)
+    await doctorModel.findByIdAndDelete(id);
     res.json({
-      status:200,
-      success:true,
-      message:"Doctor Deleted Successfully"
-    })
+      status: 200,
+      success: true,
+      message: "Doctor Deleted Successfully",
+    });
   } catch (error) {
-    console.log(error),
-    res.json({
-      status:500,
-      success:false,
-      message:"Server Error"
-
-    })
+    (console.log(error),
+      res.json({
+        status: 500,
+        success: false,
+        message: "Server Error",
+      }));
   }
-}
-//editing the doctor 
+};
+//editing the doctor
 const editDoctor = async (req, res) => {
   const { id } = req.params;
   try {
     const doctor = await doctorModel.findById(id);
     if (!doctor) {
-      return res.status(404).json({ success: false, message: "Doctor not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
     }
 
     // Destructure fields from JSON
-    const { name, email, speciality, degree, experience, about, fees, password, image } = req.body;
+    const {
+      name,
+      email,
+      speciality,
+      degree,
+      experience,
+      about,
+      fees,
+      password,
+      image,
+    } = req.body;
 
     if (name) doctor.name = name;
     if (email) doctor.email = email;
@@ -173,7 +211,7 @@ const editDoctor = async (req, res) => {
     if (experience) doctor.experience = experience;
     if (about) doctor.about = about;
     if (fees) doctor.fees = fees;
-    if (image) doctor.image = image; 
+    if (image) doctor.image = image;
 
     // Hash password if provided
     if (password && password.length >= 8) {
@@ -183,32 +221,30 @@ const editDoctor = async (req, res) => {
 
     await doctor.save();
 
-    res.status(200).json({ success: true, message: "Doctor updated successfully", doctor });
+    res
+      .status(200)
+      .json({ success: true, message: "Doctor updated successfully", doctor });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 // api to get all the appointment
-const appointmentsAdmin =async (req,res)=>{
-
+const appointmentsAdmin = async (req, res) => {
   try {
-    const appointments = await appointmentModel.find({})
-    res.json({success:true, appointments})
+    const appointments = await appointmentModel.find({});
+    res.json({ success: true, appointments });
   } catch (error) {
-    console.log(error)
-    res.json({success:false,message:error,message})
-    
+    console.log(error);
+    res.json({ success: false, message: error, message });
   }
-}
-// cancel the appointment 
+};
+// cancel the appointment
 const appointmentCancel = async (req, res) => {
   try {
     const { appointmentId } = req.body;
 
     const appointmentData = await appointmentModel.findById(appointmentId);
-
-    
 
     await appointmentModel.findByIdAndUpdate(appointmentId, { cancel: true });
 
@@ -218,7 +254,9 @@ const appointmentCancel = async (req, res) => {
 
     let slot_booked = docData.slot_booked || {};
     if (slot_booked[slotDate]) {
-      slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime);
+      slot_booked[slotDate] = slot_booked[slotDate].filter(
+        (e) => e !== slotTime,
+      );
     }
 
     await doctorModel.findByIdAndUpdate(docId, { slot_booked });
@@ -231,23 +269,39 @@ const appointmentCancel = async (req, res) => {
 //api to get the dashboard data from admin panel
 const adminDashboard = async (req, res) => {
   try {
-    const doctors = await doctorModel.find({})
-    const user = await userModel.find({})
-    const appointments = await appointmentModel.find({})
+    const doctors = await doctorModel.find({});
+    const user = await userModel.find({});
+    const appointments = await appointmentModel.find({});
+
+    let patients = new Set();
+
+    appointments.forEach((item) => {
+      const userId = item.userId?._id || item.userId;
+
+      if (userId) {
+        patients.add(userId.toString());
+      }
+    });
 
     const dashData = {
       doctors: doctors.length,
       appointments: appointments.length,
-      patients: user.length,
-      latestAppointment: appointments.reverse().slice(0,5)
-    }
+      patients:patients.size,
+      latestAppointment: appointments.reverse().slice(0, 5),
+    };
 
-    res.json({ success: true, dashData })
-
+    res.json({ success: true, dashData });
   } catch (error) {
-    res.json({ success: false, message: error.message })
+    res.json({ success: false, message: error.message });
   }
-}
-export { addDoctor, adminLogin, allDoctors , deleteDoctor, editDoctor, appointmentsAdmin,appointmentCancel,adminDashboard};
-
-
+};
+export {
+  addDoctor,
+  adminLogin,
+  allDoctors,
+  deleteDoctor,
+  editDoctor,
+  appointmentsAdmin,
+  appointmentCancel,
+  adminDashboard,
+};
