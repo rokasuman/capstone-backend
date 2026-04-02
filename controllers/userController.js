@@ -162,7 +162,7 @@ const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
 
-
+    // ✅ Validate input
     if (!userId || !docId || !slotDate || !slotTime) {
       return res.json({
         success: false,
@@ -170,8 +170,10 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-
-    const docData = await doctorModel.findById(docId).select("-password");
+    // ✅ Fetch only required doctor fields (optimized)
+    const docData = await doctorModel
+      .findById(docId)
+      .select("name fees available slot_booked");
 
     if (!docData || !docData.available) {
       return res.json({
@@ -180,30 +182,31 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-  
-    const userData = await userModel.findById(userId).select("-password");
-
+    // ✅ Fetch only required user fields (optimized)
+    const userData = await userModel
+      .findById(userId)
+      .select("name email");
 
     if (!userData) {
       return res.json({
         success: false,
-        message: "Login to book the Appointment",
+        message: "Login to book the appointment",
       });
     }
 
-  
-   const updatedDoctor = await doctorModel.findOneAndUpdate(
-  {
-    _id: docId,
-    [`slot_booked.${slotDate}`]: { $nin: [slotTime] }, 
-  },
-  {
-    $push: { [`slot_booked.${slotDate}`]: slotTime },
-  },
-  { new: true }
-);
+    // ✅ Atomic slot booking (prevents double booking)
+    const updatedDoctor = await doctorModel.findOneAndUpdate(
+      {
+        _id: docId,
+        [`slot_booked.${slotDate}`]: { $nin: [slotTime] },
+      },
+      {
+        $push: { [`slot_booked.${slotDate}`]: slotTime },
+      },
+      { new: true }
+    );
 
-    // If slot already taken
+    // ❌ Slot already booked
     if (!updatedDoctor) {
       return res.json({
         success: false,
@@ -211,54 +214,49 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-  
-    const docInfoForAppointment = { ...docData.toObject() };
-    delete docInfoForAppointment.slot_booked;
-
+    // ✅ Clean appointment data (lightweight)
     const appointmentData = {
       userId,
       docId,
       slotDate,
       slotTime,
-      userData,
-      docData: docInfoForAppointment,
+      userName: userData.name,
+      userEmail: userData.email,
+      docName: docData.name,
       amount: docData.fees,
       date: Date.now(),
     };
 
-    try {
-      const newAppointment = new appointmentModel(appointmentData);
-      await newAppointment.save();
+    // ✅ Save appointment
+    const newAppointment = new appointmentModel(appointmentData);
+    await newAppointment.save();
 
-      //sending the email
-     await sendAppointmentEmail(
+    // ✅ Send response immediately (FAST ⚡)
+    res.json({
+      success: true,
+      message: "Appointment booked successfully",
+    });
+
+    // ✅ Send email in background (NON-BLOCKING 🚀)
+    sendAppointmentEmail(
       userData.email,
       userData.name,
       docData.name,
-      slotDate,slotTime
-    )
-
-
-
-      return res.json({
-        success: true,
-        message: "Appointment booked successfully",
-      });
-
-    } catch (error) {
-
-      if (error.code === 11000) {
-        return res.json({
-          success: false,
-          message: "Someone just booked this slot. Try another.",
-        });
-      }
-
-      throw error;
-    }
+      slotDate,
+      slotTime
+    ).catch((err) => console.log("Email error:", err));
 
   } catch (error) {
     console.log(error);
+
+    // Handle duplicate key error (extra safety)
+    if (error.code === 11000) {
+      return res.json({
+        success: false,
+        message: "Someone just booked this slot. Try another.",
+      });
+    }
+
     return res.json({
       success: false,
       message: error.message,
