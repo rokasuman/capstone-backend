@@ -52,7 +52,7 @@ const registerUser = async (req, res) => {
     //saving in db
     const user = await newUser.save();
     //send the email
-    sendWelcomeEmail(user.email,user.name)
+     await sendWelcomeEmail(user.email,user.name)
 
 
     //creating the token with id
@@ -183,6 +183,7 @@ const bookAppointment = async (req, res) => {
   
     const userData = await userModel.findById(userId).select("-password");
 
+
     if (!userData) {
       return res.json({
         success: false,
@@ -230,7 +231,7 @@ const bookAppointment = async (req, res) => {
       await newAppointment.save();
 
       //sending the email
-    sendAppointmentEmail(
+     await sendAppointmentEmail(
       userData.email,
       userData.name,
       docData.name,

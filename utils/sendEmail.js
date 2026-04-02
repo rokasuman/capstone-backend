@@ -1,7 +1,9 @@
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -28,7 +30,7 @@ export const sendWelcomeEmail = async (userEmail, userName) => {
     console.log("Welcome email sent");
 
   } catch (error) {
-    console.log("Email error:", error.message);
+    console.log("Email error:", error);
   }
 };
 
@@ -41,7 +43,7 @@ export const sendAppointmentEmail = async (userEmail,userName,doctorName,date,ti
       to:userEmail,
       subject:"Appointment Confirm",
       html:`
-      <div style = "ont-family: Arial, sans-serif; padding: 20px;">
+      <div style= "font-family: Arial, sans-serif; padding: 20px;">
       <h2  style="color: green;">Hello ${userName} </h2>
 
       <p>Your appointment has been successfully booked.</p>
