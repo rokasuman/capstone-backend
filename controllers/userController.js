@@ -52,7 +52,7 @@ const registerUser = async (req, res) => {
     //saving in db
     const user = await newUser.save();
     //send the email
-     await sendWelcomeEmail(user.email,user.name)
+    sendWelcomeEmail(user.email,user.name)
 
 
     //creating the token with id
@@ -162,7 +162,7 @@ const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
 
-    // ✅ Validate input
+
     if (!userId || !docId || !slotDate || !slotTime) {
       return res.json({
         success: false,
@@ -170,10 +170,8 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    // ✅ Fetch only required doctor fields (optimized)
-    const docData = await doctorModel
-      .findById(docId)
-      .select("name fees available slot_booked");
+
+    const docData = await doctorModel.findById(docId).select("-password");
 
     if (!docData || !docData.available) {
       return res.json({
@@ -182,31 +180,30 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    // ✅ Fetch only required user fields (optimized)
-    const userData = await userModel
-      .findById(userId)
-      .select("name email");
+  
+    const userData = await userModel.findById(userId).select("-password");
+
 
     if (!userData) {
       return res.json({
         success: false,
-        message: "Login to book the appointment",
+        message: "Login to book the Appointment",
       });
     }
 
-    // ✅ Atomic slot booking (prevents double booking)
-    const updatedDoctor = await doctorModel.findOneAndUpdate(
-      {
-        _id: docId,
-        [`slot_booked.${slotDate}`]: { $nin: [slotTime] },
-      },
-      {
-        $push: { [`slot_booked.${slotDate}`]: slotTime },
-      },
-      { new: true }
-    );
+  
+   const updatedDoctor = await doctorModel.findOneAndUpdate(
+  {
+    _id: docId,
+    [`slot_booked.${slotDate}`]: { $nin: [slotTime] }, 
+  },
+  {
+    $push: { [`slot_booked.${slotDate}`]: slotTime },
+  },
+  { new: true }
+);
 
-    // ❌ Slot already booked
+    // If slot already taken
     if (!updatedDoctor) {
       return res.json({
         success: false,
@@ -214,49 +211,54 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    // ✅ Clean appointment data (lightweight)
+  
+    const docInfoForAppointment = { ...docData.toObject() };
+    delete docInfoForAppointment.slot_booked;
+
     const appointmentData = {
       userId,
       docId,
       slotDate,
       slotTime,
-      userName: userData.name,
-      userEmail: userData.email,
-      docName: docData.name,
+      userData,
+      docData: docInfoForAppointment,
       amount: docData.fees,
       date: Date.now(),
     };
 
-    // ✅ Save appointment
-    const newAppointment = new appointmentModel(appointmentData);
-    await newAppointment.save();
+    try {
+      const newAppointment = new appointmentModel(appointmentData);
+      await newAppointment.save();
 
-    // ✅ Send response immediately (FAST ⚡)
-    res.json({
-      success: true,
-      message: "Appointment booked successfully",
-    });
-
-    // ✅ Send email in background (NON-BLOCKING 🚀)
-    sendAppointmentEmail(
+      //sending the email
+     await sendAppointmentEmail(
       userData.email,
       userData.name,
       docData.name,
-      slotDate,
-      slotTime
-    ).catch((err) => console.log("Email error:", err));
+      slotDate,slotTime
+    )
+
+
+
+      return res.json({
+        success: true,
+        message: "Appointment booked successfully",
+      });
+
+    } catch (error) {
+
+      if (error.code === 11000) {
+        return res.json({
+          success: false,
+          message: "Someone just booked this slot. Try another.",
+        });
+      }
+
+      throw error;
+    }
 
   } catch (error) {
     console.log(error);
-
-    // Handle duplicate key error (extra safety)
-    if (error.code === 11000) {
-      return res.json({
-        success: false,
-        message: "Someone just booked this slot. Try another.",
-      });
-    }
-
     return res.json({
       success: false,
       message: error.message,
