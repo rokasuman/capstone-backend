@@ -46,7 +46,11 @@ const registerUser = async (req, res) => {
 
     const newUser = new userModel(userData);
     const user = await newUser.save();
-    await sendWelcomeEmail(email,name)
+  try {
+  await sendWelcomeEmail(email, name);
+} catch (error) {
+  console.error("Email failed:", error);
+}
 
   
 
