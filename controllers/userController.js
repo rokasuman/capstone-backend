@@ -211,6 +211,7 @@ const bookAppointment = async (req, res) => {
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
+    console.log("appointment saved in db")
     console.log("User Data:", userData);
     console.log("Email:", userData.email);
     try {
@@ -228,10 +229,12 @@ const bookAppointment = async (req, res) => {
     }
     console.log("after email")
 
+
     return res.json({
       success: true,
       message: "Appointment booked successfully",
     });
+    
   } catch (error) {
     console.log(error);
     return res.json({
