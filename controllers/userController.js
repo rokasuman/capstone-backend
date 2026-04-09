@@ -6,6 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import Stripe from "stripe";
+import { sendWelcomeEmail } from "../utils/sendEmail.js";
 
 
 
@@ -46,6 +47,7 @@ const registerUser = async (req, res) => {
 
     const newUser = new userModel(userData);
     const user = await newUser.save();
+    await sendWelcomeEmail(email,name)
 
   
 
