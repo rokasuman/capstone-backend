@@ -48,7 +48,7 @@ const registerUser = async (req, res) => {
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
-    // ✅ FIXED: await email
+   
     try {
       await sendWelcomeEmail(user.email, user.name);
       console.log("Welcome email sent");
@@ -224,7 +224,6 @@ const bookAppointment = async (req, res) => {
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
-    // ✅ FIXED: await email
     try {
       await sendAppointmentEmail(
         userData.email,
