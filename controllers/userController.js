@@ -8,8 +8,6 @@ import appointmentModel from "../models/appointmentModel.js";
 import Stripe from "stripe";
 import { sendWelcomeEmail } from "../utils/sendEmail.js";
 
-
-
 // api to register the user
 const registerUser = async (req, res) => {
   try {
@@ -44,18 +42,19 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
     };
-   console.log("before saving the user")
+
     const newUser = new userModel(userData);
     const user = await newUser.save();
-    console.log("sending the email")
-    await sendWelcomeEmail(email,name)
 
-  
+    try {
+      await sendWelcomeEmail(email, name);
+    } catch (error) {
+      console.error("Email failed:", error);
+    }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
     res.json({ success: true, token });
-
   } catch (error) {
     if (error.code === 11000) {
       return res.json({ success: false, message: "Email already exists" });
@@ -192,7 +191,7 @@ const bookAppointment = async (req, res) => {
       {
         $push: { [`slot_booked.${slotDate}`]: slotTime },
       },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedDoctor) {
@@ -214,19 +213,15 @@ const bookAppointment = async (req, res) => {
       docData: docInfoForAppointment,
       amount: docData.fees,
       date: Date.now(),
-     
     };
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
-   
-
     return res.json({
       success: true,
       message: "Appointment booked successfully",
     });
-
   } catch (error) {
     console.log(error);
     return res.json({
