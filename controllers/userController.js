@@ -214,7 +214,7 @@ const bookAppointment = async (req, res) => {
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-    console.log("email:",userData.email)
+    console.log("appointment:",newAppointment)
     sendAppointmentEmail(
       userData.email,
       userData.name,
