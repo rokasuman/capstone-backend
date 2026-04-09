@@ -48,13 +48,7 @@ const registerUser = async (req, res) => {
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
-   
-    try {
-      await sendWelcomeEmail(user.email, user.name);
-      console.log("Welcome email sent");
-    } catch (emailError) {
-      console.log("Welcome email failed:", emailError.message);
-    }
+  
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
@@ -218,24 +212,13 @@ const bookAppointment = async (req, res) => {
       docData: docInfoForAppointment,
       amount: docData.fees,
       date: Date.now(),
-      status: "pending",
+     
     };
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
-    try {
-      await sendAppointmentEmail(
-        userData.email,
-        userData.name,
-        docData.name,
-        slotDate,
-        slotTime
-      );
-      console.log("Appointment email sent");
-    } catch (emailError) {
-      console.log("Appointment email failed:", emailError.message);
-    }
+   
 
     return res.json({
       success: true,
