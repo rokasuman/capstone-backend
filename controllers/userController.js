@@ -153,58 +153,94 @@ const updateUserProfile = async (req, res) => {
 
 const bookAppointment = async (req, res) => {
   try {
-    const { userId, docId, slotDate, slotTime } = req.body;
+    const { docId, slotDate, slotTime } = req.body;
 
-    const docData = await doctorModel.findById(docId).select("-password")
+    //  get userId from middleware
+    const userId = req.user.id;
 
-    if(!docData. available){
-      return res.json({success:true,message:"Doctor not available"})
+    const docData = await doctorModel.findById(docId).select("-password");
+
+    if (!docData) {
+      return res.json({
+        success: false,
+        message: "Doctor not found",
+      });
     }
-    
-    let slot_booked = docData.slot_booked
 
-    //checking the doc avai
-    if(slot_booked[slotDate]){
-      if(slot_booked[slotDate].includes(slotTime)){
-        return res.json({success:false,message:"Slot not available"})
-      }else{
-        slot_booked[slotDate].push(slotTime)
+    if (!docData.available) {
+      return res.json({
+        success: false,
+        message: "Doctor not available",
+      });
+    }
+
+    let slot_booked = docData.slot_booked || {};
+
+    // checking availability
+    if (slot_booked[slotDate]) {
+      if (slot_booked[slotDate].includes(slotTime)) {
+        return res.json({
+          success: false,
+          message: "Slot not available",
+        });
+      } else {
+        slot_booked[slotDate].push(slotTime);
       }
-    }else{
-      slot_booked[slotDate] =[]
-      slot_booked[slotDate].push(slotTime)
+    } else {
+      slot_booked[slotDate] = [slotTime];
     }
 
-    const userData = await userModel.findById(userId).select("-password")
-    delete docData.slot_booked
-   
+    const userData = await userModel.findById(userId).select("-password");
+
+    if (!userData) {
+      return res.json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // remove sensitive data
+    const docInfo = { ...docData.toObject() };
+    delete docInfo.slot_booked;
+
     const appointmentData = {
       userId,
       docId,
       slotDate,
       slotTime,
       userData,
-      docData,
+      docData: docInfo,
       amount: docData.fees,
       date: Date.now(),
     };
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-    console.log("appointment:",newAppointment)
-    await sendAppointmentEmail(
-      userData.email,
-      userData.name,
-      docData.name,
-      slotDate,
-      slotTime
-    ).catch(err =>console.error("email error",err));
-    
-    await doctorModel.findByIdAndUpdate(docId,{slot_booked})
+
+    console.log("appointment:", newAppointment);
+
+    //  send email safely
+    try {
+      await sendAppointmentEmail(
+        userData.email,
+        userData.name,
+        docData.name,
+        slotDate,
+        slotTime
+      );
+    } catch (err) {
+      console.error("email error", err);
+    }
+
+    // update doctor slots
+    await doctorModel.findByIdAndUpdate(docId, {
+      slot_booked,
+    });
+
     return res.json({
       success: true,
       message: "Appointment booked successfully",
-    }); 
+    });
   } catch (error) {
     console.log(error);
     return res.json({

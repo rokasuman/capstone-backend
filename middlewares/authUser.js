@@ -3,26 +3,27 @@ import jwt from "jsonwebtoken";
 // user authentication middleware
 const authUser = async (req, res, next) => {
   try {
-    const  {token}  = req.headers
+    const token = req.headers.token; 
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Not Authorized. Please login again"
+        message: "Not Authorized. Please login again",
       });
     }
 
     // verifying the token
-    const token_decode = jwt.verify(token, process.env.JWT_SECRET);
-    req.body =req.body || {}
-    req.body.userId=token_decode.id;
-    next();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // attach userId 
+    req.user = { id: decoded.id };
+
+    next();
   } catch (error) {
     console.log(error);
     return res.status(401).json({
       success: false,
-      message: "Invalid token"
+      message: "Invalid token",
     });
   }
 };
