@@ -52,7 +52,7 @@ const registerUser = async (req, res) => {
     //saving in db
     const user = await newUser.save();
     //send the email
-     sendWelcomeEmail(user.email,user.name)
+     await sendWelcomeEmail(user.email,user.name)
      console.log("email funcion is triggred")
 
 
@@ -235,7 +235,7 @@ const bookAppointment = async (req, res) => {
     
 
       //sending the email
-     sendAppointmentEmail(
+     await sendAppointmentEmail(
       userData.email,
       userData.name,
       docData.name,

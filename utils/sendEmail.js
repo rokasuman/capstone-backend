@@ -29,6 +29,7 @@ export const sendWelcomeEmail =async(userEmail, userName) => {
 
   } catch (error) {
     console.log("Email error:", error);
+    
   }
 };
 
