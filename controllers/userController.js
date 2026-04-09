@@ -8,9 +8,6 @@ import appointmentModel from "../models/appointmentModel.js";
 import Stripe from "stripe";
 import { sendAppointmentEmail } from "../utils/sendEmail.js";
 
-
-
-
 // api to register the user
 const registerUser = async (req, res) => {
   try {
@@ -48,9 +45,6 @@ const registerUser = async (req, res) => {
 
     const newUser = new userModel(userData);
     const user = await newUser.save();
-
-
-  
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
@@ -217,14 +211,17 @@ const bookAppointment = async (req, res) => {
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-
-    await sendAppointmentEmail(
-      userData.email,
-      userData.name,
-      docData.name,
-      slotDate,
-      slotTime
-    )
+    try {
+      await sendAppointmentEmail(
+        userData.email,
+        userData.name,
+        docData.name,
+        slotDate,
+        slotTime,
+      );
+    } catch (emailError) {
+      console.log("Email failed:", emailError);
+    }
 
     return res.json({
       success: true,
