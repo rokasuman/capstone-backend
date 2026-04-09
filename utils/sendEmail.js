@@ -5,8 +5,8 @@ import nodemailer from "nodemailer"
 const transporter = nodemailer.createTransport({
     service:"gmail",
     auth:{
-        user:"process.env.EMAIL_USER",
-        pass:"process.env.EMAIL_PASS"
+        user:process.env.EMAIL_USER,
+        pass:process.env.EMAIL_PASS
     }
 })
 export const sendWelcomeEmail = async (email, name) => {
@@ -16,7 +16,7 @@ export const sendWelcomeEmail = async (email, name) => {
       to: email,
       subject: " Welcome to NovaHealth!",
       html: `
-        <h2 class="text-green">Welcome, ${name} 👋</h2>
+        <h2 style="text-green">Welcome, ${name} 👋</h2>
         <p>Thank you for joining NovaHealth.</p>
         <p>You can now book appointments and manage your health easily.</p>
         <br/>
