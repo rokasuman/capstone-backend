@@ -1,5 +1,15 @@
-import transporter from "./mailer.js";
+import nodemailer from "nodemailer";
 
+// ✅ Create transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// ✅ Send Appointment Email
 export const sendAppointmentEmail = async (
   email,
   name,
@@ -7,6 +17,8 @@ export const sendAppointmentEmail = async (
   date,
   time
 ) => {
+  console.log("📧 Email function triggered");
+
   try {
     await transporter.sendMail({
       from: `"Nova Health" <${process.env.EMAIL_USER}>`,
@@ -14,8 +26,8 @@ export const sendAppointmentEmail = async (
       subject: "Appointment Confirmation",
 
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 10px;">
-          <h2 style="color: #2c3e50;">Appointment Confirmed</h2>
+        <div style="font-family: Arial, sans-serif;">
+          <h2 style="color:#2c3e50;">Appointment Confirmed</h2>
 
           <p>Dear <strong>${name}</strong>,</p>
 
@@ -52,9 +64,8 @@ export const sendAppointmentEmail = async (
       `,
     });
 
-    console.log("Appointment email sent");
+    console.log("✅ Email sent successfully");
   } catch (error) {
-    console.error("Email error:", error);
+    console.error("❌ Email sending failed:", error);
   }
 };
-
