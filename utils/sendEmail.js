@@ -9,14 +9,14 @@ const transfer = nodemailer.createTransport({
         pass:"process.env.EMAIL_PASS"
     }
 })
-export const sendWelcomeEmail = async (toEmail, userName) => {
+export const sendWelcomeEmail = async (email, name) => {
   try {
     await transporter.sendMail({
       from: `"NovaHealth" <${process.env.EMAIL_USER}>`,
-      to: toEmail,
+      to: email,
       subject: " Welcome to NovaHealth!",
       html: `
-        <h2 class="text-green">Welcome, ${userName} 👋</h2>
+        <h2 class="text-green">Welcome, ${name} 👋</h2>
         <p>Thank you for joining NovaHealth.</p>
         <p>You can now book appointments and manage your health easily.</p>
         <br/>
