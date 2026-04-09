@@ -153,71 +153,52 @@ const updateUserProfile = async (req, res) => {
 
 const bookAppointment = async (req, res) => {
   try {
-    console.log("🚀 bookAppointment API HIT");
-
     const { userId, docId, slotDate, slotTime } = req.body;
 
     if (!userId || !docId || !slotDate || !slotTime) {
-      console.log("❌ Missing required fields");
       return res.json({
         success: false,
         message: "Missing required fields",
       });
     }
 
-    // 🔍 Get doctor
     const docData = await doctorModel.findById(docId).select("-password");
 
-    if (!docData) {
-      console.log("❌ Doctor not found");
-      return res.json({ success: false, message: "Doctor not found" });
-    }
-
-    if (!docData.available) {
-      console.log("❌ Doctor not available");
+    if (!docData || !docData.available) {
       return res.json({
         success: false,
         message: "Doctor not available",
       });
     }
 
-    // 🔍 Get user
     const userData = await userModel.findById(userId).select("-password");
 
     if (!userData) {
-      console.log("❌ User not found");
       return res.json({
         success: false,
         message: "Login to book the Appointment",
       });
     }
 
-    console.log("📧 User email:", userData.email);
+    const updatedDoctor = await doctorModel.findOneAndUpdate(
+      {
+        _id: docId,
+        [`slot_booked.${slotDate}`]: { $nin: [slotTime] },
+      },
+      {
+        $push: { [`slot_booked.${slotDate}`]: slotTime },
+      },
+      { new: true },
+    );
+     console.log("👉 updatedDoctor:", updatedDoctor);
 
-    // ✅ FIXED SLOT LOGIC
-    const doc = await doctorModel.findById(docId);
-
-    if (!doc.slot_booked) doc.slot_booked = {};
-
-    if (!doc.slot_booked[slotDate]) {
-      doc.slot_booked[slotDate] = [];
-    }
-
-    if (doc.slot_booked[slotDate].includes(slotTime)) {
-      console.log("❌ Slot already booked");
+    if (!updatedDoctor) {
       return res.json({
         success: false,
-        message: "Slot already booked",
+        message: "Slot already booked, choose another",
       });
     }
 
-    // ✅ Book slot
-    doc.slot_booked[slotDate].push(slotTime);
-    await doc.save();
-
-    console.log("✅ Slot booked successfully");
-
-    // 📄 Prepare appointment data
     const docInfoForAppointment = { ...docData.toObject() };
     delete docInfoForAppointment.slot_booked;
 
@@ -232,34 +213,24 @@ const bookAppointment = async (req, res) => {
       date: Date.now(),
     };
 
-    // 💾 Save appointment
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-
-    console.log("✅ Appointment saved:", newAppointment._id);
-
-    // 📧 Send email
-    try {
-      console.log("📧 Sending email...");
-      await sendAppointmentEmail(
-        userData.email,
-        userData.name,
-        docData.name,
-        slotDate,
-        slotTime
-      );
-      console.log("✅ Email sent successfully");
-    } catch (emailError) {
-      console.error("❌ Email failed:", emailError);
-    }
-
+    console.log("appointment:",newAppointment)
+    sendAppointmentEmail(
+      userData.email,
+      userData.name,
+      docData.name,
+      slotDate,
+      slotTime
+    ).catch(err =>console.error("email error",err));
+    
     return res.json({
       success: true,
       message: "Appointment booked successfully",
     });
-
+    
   } catch (error) {
-    console.error("🔥 Server Error:", error);
+    console.log(error);
     return res.json({
       success: false,
       message: error.message,
