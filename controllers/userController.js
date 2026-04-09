@@ -9,7 +9,8 @@ import Stripe from "stripe";
 import { sendWelcomeEmail } from "../utils/sendEmail.js";
 import { sendAppointmentEmail } from "../utils/sendEmail.js";
 
-//api to register the user
+
+// api to register the user
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -20,7 +21,7 @@ const registerUser = async (req, res) => {
         message: "Missing details",
       });
     }
-    //validating the email
+
     if (!validator.isEmail(email)) {
       return res.status(400).json({
         success: false,
@@ -28,34 +29,37 @@ const registerUser = async (req, res) => {
       });
     }
 
-    //validating the password
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
         message: "enter a strong password",
       });
     }
-    //hasing the password
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    //storing in the object
     const userData = {
       name,
       email,
       password: hashedPassword,
     };
-    const newUser = new userModel(userData);
-    //saving in db
-    const user = await newUser.save();
-    //send the email
-    sendWelcomeEmail(user.email, user.name);
-    console.log("email funcion is triggred");
 
-    //creating the token with id
+    const newUser = new userModel(userData);
+    const user = await newUser.save();
+
+    // ✅ FIXED: await email
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+      console.log("Welcome email sent");
+    } catch (emailError) {
+      console.log("Welcome email failed:", emailError.message);
+    }
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
     res.json({ success: true, token });
+
   } catch (error) {
     if (error.code === 11000) {
       return res.json({ success: false, message: "Email already exists" });
@@ -192,10 +196,9 @@ const bookAppointment = async (req, res) => {
       {
         $push: { [`slot_booked.${slotDate}`]: slotTime },
       },
-      { new: true },
+      { new: true }
     );
 
-    // If slot already taken
     if (!updatedDoctor) {
       return res.json({
         success: false,
@@ -218,34 +221,28 @@ const bookAppointment = async (req, res) => {
       status: "pending",
     };
 
-    try {
-      const newAppointment = new appointmentModel(appointmentData);
-      await newAppointment.save();
+    const newAppointment = new appointmentModel(appointmentData);
+    await newAppointment.save();
 
-      //sending the email
-      sendAppointmentEmail(
+    // ✅ FIXED: await email
+    try {
+      await sendAppointmentEmail(
         userData.email,
         userData.name,
         docData.name,
         slotDate,
-        slotTime,
-      ).catch(console.error);
-      console.log("email function is triggered");
-
-      return res.json({
-        success: true,
-        message: "Appointment booked successfully",
-      });
-    } catch (error) {
-      if (error.code === 11000) {
-        return res.json({
-          success: false,
-          message: "Someone just booked this slot. Try another.",
-        });
-      }
-
-      throw error;
+        slotTime
+      );
+      console.log("Appointment email sent");
+    } catch (emailError) {
+      console.log("Appointment email failed:", emailError.message);
     }
+
+    return res.json({
+      success: true,
+      message: "Appointment booked successfully",
+    });
+
   } catch (error) {
     console.log(error);
     return res.json({
