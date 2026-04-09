@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-// ✅ Create transporter
+// Create transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ Send Appointment Email
+//  Send Appointment Email
 export const sendAppointmentEmail = async (
   email,
   name,
@@ -64,8 +64,8 @@ export const sendAppointmentEmail = async (
       `,
     });
 
-    console.log("✅ Email sent successfully");
+    console.log(" Email sent successfully");
   } catch (error) {
-    console.error("❌ Email sending failed:", error);
+    console.error(" Email sending failed:", error);
   }
 };
