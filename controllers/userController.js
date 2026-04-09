@@ -153,43 +153,33 @@ const updateUserProfile = async (req, res) => {
 
 const bookAppointment = async (req, res) => {
   try {
-    console.log("👉 Incoming Request Body:", req.body);
-
     const { userId, docId, slotDate, slotTime } = req.body;
 
     if (!userId || !docId || !slotDate || !slotTime) {
-      console.log("❌ Missing fields");
       return res.json({
         success: false,
         message: "Missing required fields",
       });
     }
 
-    console.log("🔍 Fetching doctor...");
     const docData = await doctorModel.findById(docId).select("-password");
 
-    if (!docData) {
-      console.log("❌ Doctor not found");
-      return res.json({ success: false, message: "Doctor not found" });
+    if (!docData || !docData.available) {
+      return res.json({
+        success: false,
+        message: "Doctor not available",
+      });
     }
 
-    if (!docData.available) {
-      console.log("❌ Doctor not available");
-      return res.json({ success: false, message: "Doctor not available" });
-    }
-
-    console.log("🔍 Fetching user...");
     const userData = await userModel.findById(userId).select("-password");
 
     if (!userData) {
-      console.log("❌ User not found");
       return res.json({
         success: false,
         message: "Login to book the Appointment",
       });
     }
 
-    console.log("🔄 Updating doctor slot...");
     const updatedDoctor = await doctorModel.findOneAndUpdate(
       {
         _id: docId,
@@ -198,18 +188,19 @@ const bookAppointment = async (req, res) => {
       {
         $push: { [`slot_booked.${slotDate}`]: slotTime },
       },
-      { new: true }
+      { new: true },
     );
+     console.log("👉 updatedDoctor:", updatedDoctor);
 
     if (!updatedDoctor) {
-      console.log("❌ Slot already booked");
       return res.json({
         success: false,
         message: "Slot already booked, choose another",
       });
     }
 
-    console.log("📝 Preparing appointment data...");
+    const docInfoForAppointment = { ...docData.toObject() };
+    delete docInfoForAppointment.slot_booked;
 
     const appointmentData = {
       userId,
@@ -217,40 +208,29 @@ const bookAppointment = async (req, res) => {
       slotDate,
       slotTime,
       userData,
-      docData,
+      docData: docInfoForAppointment,
       amount: docData.fees,
       date: Date.now(),
     };
 
     const newAppointment = new appointmentModel(appointmentData);
-
-    console.log("💾 Saving appointment...");
     await newAppointment.save();
-
-    console.log("✅ Appointment saved:", newAppointment);
-
-    // EMAIL DEBUG
-    console.log("📧 Sending email...");
-    try {
-      await sendAppointmentEmail(
-        userData.email,
-        userData.name,
-        docData.name,
-        slotDate,
-        slotTime
-      );
-      console.log("✅ Email sent successfully");
-    } catch (emailError) {
-      console.error("❌ Email failed:", emailError);
-    }
-
+    console.log("appointment:",newAppointment)
+    sendAppointmentEmail(
+      userData.email,
+      userData.name,
+      docData.name,
+      slotDate,
+      slotTime
+    ).catch(err =>console.error("email error",err));
+    
     return res.json({
       success: true,
       message: "Appointment booked successfully",
     });
-
+    
   } catch (error) {
-    console.error("🔥 Server Error:", error);
+    console.log(error);
     return res.json({
       success: false,
       message: error.message,
