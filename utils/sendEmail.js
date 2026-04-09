@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 //send email for creating account 
-export const sendWelcomeEmail =async(userEmail, userName) => {
+export const sendWelcomeEmail =(userEmail, userName) => {
   try {
     const mailOptions = {
       from:`"Nova Health Care " <${process.env.EMAIL_USER}>`,
@@ -24,17 +24,17 @@ export const sendWelcomeEmail =async(userEmail, userName) => {
       `,
     };
 
-   await transporter.sendMail(mailOptions);
+transporter.sendMail(mailOptions);
     console.log("Welcome email sent");
 
   } catch (error) {
     console.log("Email error:", error);
-    
+
   }
 };
 
 //send email after appointment is booked 
-export const sendAppointmentEmail =async(userEmail,userName,doctorName,date,time)=>{
+export const sendAppointmentEmail =(userEmail,userName,doctorName,date,time)=>{
 
   try {
     const mailOptions ={
@@ -64,7 +64,7 @@ export const sendAppointmentEmail =async(userEmail,userName,doctorName,date,time
       `
     }
 
-    await transporter.sendMail(mailOptions)
+ transporter.sendMail(mailOptions)
     console.log("appointment email send successfully")
   } catch (error) {
     console.log("appointment email error", error.message)

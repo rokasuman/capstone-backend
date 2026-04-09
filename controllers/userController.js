@@ -5,11 +5,9 @@ import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
-import Stripe from "stripe" 
+import Stripe from "stripe";
 import { sendWelcomeEmail } from "../utils/sendEmail.js";
 import { sendAppointmentEmail } from "../utils/sendEmail.js";
-
-
 
 //api to register the user
 const registerUser = async (req, res) => {
@@ -29,8 +27,7 @@ const registerUser = async (req, res) => {
         message: "Invalid Email",
       });
     }
-   
-    
+
     //validating the password
     if (password.length < 8) {
       return res.status(400).json({
@@ -52,18 +49,17 @@ const registerUser = async (req, res) => {
     //saving in db
     const user = await newUser.save();
     //send the email
-     await sendWelcomeEmail(user.email,user.name)
-     console.log("email funcion is triggred")
-
+    sendWelcomeEmail(user.email, user.name);
+    console.log("email funcion is triggred");
 
     //creating the token with id
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
     res.json({ success: true, token });
   } catch (error) {
-     if(error.code === 11000){
-      return res.json({success: false, message:"Email already exists"})
-     }
+    if (error.code === 11000) {
+      return res.json({ success: false, message: "Email already exists" });
+    }
     res.json({ success: false, message: error.message });
   }
 };
@@ -163,14 +159,12 @@ const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
 
-
     if (!userId || !docId || !slotDate || !slotTime) {
       return res.json({
         success: false,
         message: "Missing required fields",
       });
     }
-
 
     const docData = await doctorModel.findById(docId).select("-password");
 
@@ -181,9 +175,7 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-  
     const userData = await userModel.findById(userId).select("-password");
-
 
     if (!userData) {
       return res.json({
@@ -192,17 +184,16 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-  
-   const updatedDoctor = await doctorModel.findOneAndUpdate(
-  {
-    _id: docId,
-    [`slot_booked.${slotDate}`]: { $nin: [slotTime] }, 
-  },
-  {
-    $push: { [`slot_booked.${slotDate}`]: slotTime },
-  },
-  { new: true }
-);
+    const updatedDoctor = await doctorModel.findOneAndUpdate(
+      {
+        _id: docId,
+        [`slot_booked.${slotDate}`]: { $nin: [slotTime] },
+      },
+      {
+        $push: { [`slot_booked.${slotDate}`]: slotTime },
+      },
+      { new: true },
+    );
 
     // If slot already taken
     if (!updatedDoctor) {
@@ -212,7 +203,6 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-  
     const docInfoForAppointment = { ...docData.toObject() };
     delete docInfoForAppointment.slot_booked;
 
@@ -225,33 +215,28 @@ const bookAppointment = async (req, res) => {
       docData: docInfoForAppointment,
       amount: docData.fees,
       date: Date.now(),
-      status:"pending",
+      status: "pending",
     };
 
     try {
       const newAppointment = new appointmentModel(appointmentData);
       await newAppointment.save();
 
-    
-
       //sending the email
-     await sendAppointmentEmail(
-      userData.email,
-      userData.name,
-      docData.name,
-      slotDate,slotTime
-    ).catch(console.error)
-    console.log("email function is triggered")
+      sendAppointmentEmail(
+        userData.email,
+        userData.name,
+        docData.name,
+        slotDate,
+        slotTime,
+      ).catch(console.error);
+      console.log("email function is triggered");
 
-  return res.json({
+      return res.json({
         success: true,
         message: "Appointment booked successfully",
       });
-
-      
-
     } catch (error) {
-
       if (error.code === 11000) {
         return res.json({
           success: false,
@@ -261,7 +246,6 @@ const bookAppointment = async (req, res) => {
 
       throw error;
     }
-
   } catch (error) {
     console.log(error);
     return res.json({
@@ -271,19 +255,18 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-//api to get user appointmets 
-const listAppointment = async (req,res)=>{
-
+//api to get user appointmets
+const listAppointment = async (req, res) => {
   try {
-    const {userId} = req.body
-    const appointments = await appointmentModel.find({userId})
-    res.json({success:true, appointments})
+    const { userId } = req.body;
+    const appointments = await appointmentModel.find({ userId });
+    res.json({ success: true, appointments });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
   }
 };
-//api to cancel the appointments 
+//api to cancel the appointments
 const cancelAppointment = async (req, res) => {
   try {
     const { userId, appointmentId } = req.body;
@@ -298,7 +281,6 @@ const cancelAppointment = async (req, res) => {
       return res.json({ success: false, message: "Unauthorized Action" });
     }
 
-    
     await appointmentModel.findByIdAndUpdate(appointmentId, { cancel: true });
 
     const { docId, slotDate, slotTime } = appointmentData;
@@ -308,7 +290,7 @@ const cancelAppointment = async (req, res) => {
 
     if (slot_booked[slotDate]) {
       slot_booked[slotDate] = slot_booked[slotDate].filter(
-        (e) => e !== slotTime
+        (e) => e !== slotTime,
       );
 
       if (slot_booked[slotDate].length === 0) {
@@ -319,25 +301,25 @@ const cancelAppointment = async (req, res) => {
     await doctorModel.findByIdAndUpdate(docId, { slot_booked });
 
     res.json({ success: true, message: "Appointment Cancelled" });
-
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
-//api for appointment payment 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY )
+//api for appointment payment
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const createPaymentIntent = async (req,res)=>{
-
+const createPaymentIntent = async (req, res) => {
   try {
-    const {appointmentId} = req.body;
+    const { appointmentId } = req.body;
     const appointment = await appointmentModel.findById(appointmentId);
-    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (!appointment)
+      return res.status(404).json({ message: "Appointment not found" });
 
-    if (appointment.payment) return res.status(400).json({ message: "Already paid" });
+    if (appointment.payment)
+      return res.status(400).json({ message: "Already paid" });
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: appointment.amount * 100, 
+      amount: appointment.amount * 100,
       currency: "aud",
       payment_method_types: ["card"],
       metadata: {
@@ -348,26 +330,24 @@ const createPaymentIntent = async (req,res)=>{
     });
 
     res.status(200).json({ clientSecret: paymentIntent.client_secret });
-    
   } catch (error) {
-      res.json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
-}
+};
 const confirmPayment = async (req, res) => {
   try {
     const { appointmentId } = req.body;
 
     const appointment = await appointmentModel.findByIdAndUpdate(
       appointmentId,
-      { payment: true ,
-        status:"Confirmed"
-      },
-      { new: true }
+      { payment: true, status: "Confirmed" },
+      { new: true },
     );
 
-    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (!appointment)
+      return res.status(404).json({ message: "Appointment not found" });
 
-    res.json({ success:true ,message: "Payment successful", appointment });
+    res.json({ success: true, message: "Payment successful", appointment });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
@@ -383,5 +363,5 @@ export {
   listAppointment,
   cancelAppointment,
   createPaymentIntent,
-  confirmPayment
+  confirmPayment,
 };
