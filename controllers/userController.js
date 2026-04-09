@@ -44,9 +44,10 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
     };
-
+   console.log("before saving the user")
     const newUser = new userModel(userData);
     const user = await newUser.save();
+    console.log("sending the email")
     await sendWelcomeEmail(email,name)
 
   
