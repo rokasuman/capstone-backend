@@ -42,7 +42,7 @@ export const sendAppointmentEmail = async (
           <p>Please arrive 10 minutes early.</p>
 
           <br/>
-          <p>Thank you,<br/>Nova Health Team</p>
+          <p>Thank you,<br/>Nova HealthCare Team</p>
         </div>
       `,
 

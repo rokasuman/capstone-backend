@@ -164,7 +164,7 @@ const bookAppointment = async (req, res) => {
 
     const docData = await doctorModel.findById(docId).select("-password");
 
-    if (!docData || !docData.available) {
+    if (!docData.available) {
       return res.json({
         success: false,
         message: "Doctor not available",
@@ -216,7 +216,7 @@ const bookAppointment = async (req, res) => {
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
     console.log("appointment:",newAppointment)
-    sendAppointmentEmail(
+    await sendAppointmentEmail(
       userData.email,
       userData.name,
       docData.name,
