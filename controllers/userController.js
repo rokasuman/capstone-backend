@@ -155,60 +155,36 @@ const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
 
-    if (!userId || !docId || !slotDate || !slotTime) {
-      return res.json({
-        success: false,
-        message: "Missing required fields",
-      });
+    const docData = await doctorModel.findById(docId).select("-password")
+
+    if(!docData. available){
+      return res.json({success:true,message:"Doctor not available"})
+    }
+    
+    let slot_booked = docData.slot_booked
+
+    //checking the doc avai
+    if(slot_booked[slotDate]){
+      if(slot_booked[slotDate].includes(slotTime)){
+        return res.json({success:false,message:"Slot not available"})
+      }else{
+        slot_booked[slotDate].push(slotTime)
+      }
+    }else{
+      slot_booked[slotDate] =[]
+      slot_booked[slotDate].push(slotTime)
     }
 
-    const docData = await doctorModel.findById(docId).select("-password");
-
-    if (!docData.available) {
-      return res.json({
-        success: false,
-        message: "Doctor not available",
-      });
-    }
-
-    const userData = await userModel.findById(userId).select("-password");
-
-    if (!userData) {
-      return res.json({
-        success: false,
-        message: "Login to book the Appointment",
-      });
-    }
-
-    const updatedDoctor = await doctorModel.findOneAndUpdate(
-      {
-        _id: docId,
-        [`slot_booked.${slotDate}`]: { $nin: [slotTime] },
-      },
-      {
-        $push: { [`slot_booked.${slotDate}`]: slotTime },
-      },
-      { new: true },
-    );
-     console.log("👉 updatedDoctor:", updatedDoctor);
-
-    if (!updatedDoctor) {
-      return res.json({
-        success: false,
-        message: "Slot already booked, choose another",
-      });
-    }
-
-    const docInfoForAppointment = { ...docData.toObject() };
-    delete docInfoForAppointment.slot_booked;
-
+    const userData = await userModel.findById(userId).select("-password")
+    delete docData.slot_booked
+   
     const appointmentData = {
       userId,
       docId,
       slotDate,
       slotTime,
       userData,
-      docData: docInfoForAppointment,
+      docData,
       amount: docData.fees,
       date: Date.now(),
     };
@@ -224,11 +200,11 @@ const bookAppointment = async (req, res) => {
       slotTime
     ).catch(err =>console.error("email error",err));
     
+    await doctorModel.findByIdAndUpdate(docId,{slot_booked})
     return res.json({
       success: true,
       message: "Appointment booked successfully",
-    });
-    
+    }); 
   } catch (error) {
     console.log(error);
     return res.json({
