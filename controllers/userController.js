@@ -211,25 +211,19 @@ const bookAppointment = async (req, res) => {
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-    console.log("appointment saved in db")
-    console.log("User Data:", userData);
-    console.log("Email:", userData.email);
+    
     try {
       await sendAppointmentEmail(
         userData.email,
         userData.name,
         docData.name,
         slotDate,
-        slotTime,
-      );
-      console.log("email function called")
-      console.log(userData.email)
-    } catch (emailError) {
-      console.log("Email failed:", emailError);
+        slotTime
+      )
+    } catch (error) {
+      console.log("cannot send the email",error)
+      
     }
-    console.log("after email")
-
-
     return res.json({
       success: true,
       message: "Appointment booked successfully",
