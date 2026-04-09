@@ -52,7 +52,8 @@ const registerUser = async (req, res) => {
     //saving in db
     const user = await newUser.save();
     //send the email
-    sendWelcomeEmail(user.email,user.name)
+     sendWelcomeEmail(user.email,user.name)
+     console.log("email funcion is triggred")
 
 
     //creating the token with id
@@ -224,26 +225,30 @@ const bookAppointment = async (req, res) => {
       docData: docInfoForAppointment,
       amount: docData.fees,
       date: Date.now(),
+      status:"pending",
     };
 
     try {
       const newAppointment = new appointmentModel(appointmentData);
       await newAppointment.save();
 
+    
+
       //sending the email
-     await sendAppointmentEmail(
+     sendAppointmentEmail(
       userData.email,
       userData.name,
       docData.name,
       slotDate,slotTime
-    )
+    ).catch(console.error)
+    console.log("email function is triggered")
 
-
-
-      return res.json({
+  return res.json({
         success: true,
         message: "Appointment booked successfully",
       });
+
+      
 
     } catch (error) {
 
@@ -354,7 +359,9 @@ const confirmPayment = async (req, res) => {
 
     const appointment = await appointmentModel.findByIdAndUpdate(
       appointmentId,
-      { payment: true },
+      { payment: true ,
+        status:"Confirmed"
+      },
       { new: true }
     );
 

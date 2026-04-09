@@ -1,9 +1,7 @@
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service:"gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -11,7 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 //send email for creating account 
-export const sendWelcomeEmail = async (userEmail, userName) => {
+export const sendWelcomeEmail =async(userEmail, userName) => {
   try {
     const mailOptions = {
       from:`"Nova Health Care " <${process.env.EMAIL_USER}>`,
@@ -26,7 +24,7 @@ export const sendWelcomeEmail = async (userEmail, userName) => {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+   await transporter.sendMail(mailOptions);
     console.log("Welcome email sent");
 
   } catch (error) {
@@ -35,7 +33,7 @@ export const sendWelcomeEmail = async (userEmail, userName) => {
 };
 
 //send email after appointment is booked 
-export const sendAppointmentEmail = async (userEmail,userName,doctorName,date,time)=>{
+export const sendAppointmentEmail =async(userEmail,userName,doctorName,date,time)=>{
 
   try {
     const mailOptions ={
