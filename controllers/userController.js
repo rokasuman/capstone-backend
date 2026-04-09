@@ -154,6 +154,7 @@ const bookAppointment = async (req, res) => {
 
     //  get userId from middleware
     const userId = req.user.id;
+    console.log("userID:",userId)
 
     const docData = await doctorModel.findById(docId).select("-password");
 

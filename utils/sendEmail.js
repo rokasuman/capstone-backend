@@ -7,7 +7,13 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+    tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 20000,
+  socketTimeout: 20000,
 });
+
 
 //  Send Appointment Email
 export const sendAppointmentEmail = async (
@@ -17,9 +23,10 @@ export const sendAppointmentEmail = async (
   date,
   time
 ) => {
-  console.log(" Email function triggered");
+  console.log("Email function starting");
 
   try {
+    console.log("before email")
     await transporter.sendMail({
       from: `"Nova Health" <${process.env.EMAIL_USER}>`,
       to: email,

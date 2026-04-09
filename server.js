@@ -5,7 +5,7 @@ import connectDB from "./config/mongodb.js";
 import adminRouter from "./routes/adminRoute.js";
 import doctorRouter from "./routes/doctorRoutes.js";
 import userRouter from "./routes/userRoutes.js";
-import { sendAppointmentEmail } from "./utils/sendEmail.js"; // 👈 import this
+import { sendAppointmentEmail } from "./utils/sendEmail.js"; 
 
 // app configuration 
 const app = express();
@@ -22,10 +22,10 @@ app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/user", userRouter);
 
-// 🔥 TEST ROUTE FOR EMAIL
+//  TEST ROUTE FOR EMAIL
 app.get("/test-email", async (req, res) => {
   try {
-    console.log("🔥 /test-email route hit");
+    console.log(" /test-email route hit");
 
     await sendAppointmentEmail(
       "roka7362@gmail.com",
@@ -35,12 +35,12 @@ app.get("/test-email", async (req, res) => {
       "10:00 AM"
     );
 
-    console.log("✅ Email function executed");
-    res.send("✅ Email sent");
+    console.log("Email function executed");
+    res.send("Email sent");
 
   } catch (err) {
-    console.error("❌ Email error:", err);
-    res.send("❌ Email failed");
+    console.error("Email error:", err);
+    res.send(" Email failed");
   }
 });
 
