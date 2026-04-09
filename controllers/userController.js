@@ -6,7 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import Stripe from "stripe";
-import { sendAppointmentEmail } from "../utils/sendEmail.js";
+
 
 // api to register the user
 const registerUser = async (req, res) => {
@@ -212,18 +212,6 @@ const bookAppointment = async (req, res) => {
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
     
-    try {
-      await sendAppointmentEmail(
-        userData.email,
-        userData.name,
-        docData.name,
-        slotDate,
-        slotTime
-      )
-    } catch (error) {
-      console.log("cannot send the email",error)
-      
-    }
     return res.json({
       success: true,
       message: "Appointment booked successfully",
