@@ -17,7 +17,7 @@ export const sendAppointmentEmail = async (
   date,
   time
 ) => {
-  console.log("📧 Email function triggered");
+  console.log(" Email function triggered");
 
   try {
     await transporter.sendMail({
