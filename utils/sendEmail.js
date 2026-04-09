@@ -2,7 +2,7 @@ import nodemailer from "nodemailer"
 
 //creating the transger
 
-const transfer = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service:"gmail",
     auth:{
         user:"process.env.EMAIL_USER",
