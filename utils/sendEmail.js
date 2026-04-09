@@ -1,23 +1,7 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-    tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 30000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-
-//  Send Appointment Email
 export const sendAppointmentEmail = async (
   email,
   name,
@@ -28,53 +12,34 @@ export const sendAppointmentEmail = async (
   console.log("Email function starting");
 
   try {
-    console.log("before email")
-    await transporter.sendMail({
-      from: `"Nova Health" <${process.env.EMAIL_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: "Nova Health <onboarding@resend.dev>", // default test sender
       to: email,
       subject: "Appointment Confirmation",
 
       html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2 style="color:#2c3e50;">Appointment Confirmed</h2>
+        <h2>Appointment Confirmed</h2>
+        <p>Hello ${name},</p>
 
-          <p>Dear <strong>${name}</strong>,</p>
+        <p>Your appointment is booked successfully.</p>
 
-          <p>Your appointment has been successfully booked.</p>
+        <p>
+          Doctor: ${doctor} <br/>
+          Date: ${date} <br/>
+          Time: ${time}
+        </p>
 
-          <p>
-            <strong>Doctor:</strong> ${doctor}<br/>
-            <strong>Date:</strong> ${date}<br/>
-            <strong>Time:</strong> ${time}
-          </p>
-
-          <p>Please arrive 10 minutes early.</p>
-
-          <br/>
-          <p>Thank you,<br/>Nova HealthCare Team</p>
-        </div>
-      `,
-
-      text: `
-        Appointment Confirmed
-
-        Dear ${name},
-
-        Your appointment has been successfully booked.
-
-        Doctor: ${doctor}
-        Date: ${date}
-        Time: ${time}
-
-        Please arrive 10 minutes early.
-
-        Thank you,
-        Nova Health Team
+        <p>Thanks,<br/>Nova Health</p>
       `,
     });
 
-    console.log(" Email sent successfully");
-  } catch (error) {
-    console.error(" Email sending failed:", error);
+    if (error) {
+      console.error("❌ Resend error:", error);
+      return;
+    }
+
+    console.log("✅ Email sent:", data);
+  } catch (err) {
+    console.error("❌ Email failed:", err);
   }
 };
