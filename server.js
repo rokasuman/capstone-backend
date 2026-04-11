@@ -6,6 +6,8 @@ import adminRouter from "./routes/adminRoute.js";
 import doctorRouter from "./routes/doctorRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import { sendAppointmentEmail } from "./utils/sendEmail.js"; 
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
 
 // app configuration 
 const app = express();
