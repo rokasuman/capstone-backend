@@ -1,8 +1,4 @@
 import nodemailer from "nodemailer";
-import dns from "dns";
-
-// Force IPv4 
-dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -18,16 +14,6 @@ const transporter = nodemailer.createTransport({
    greetingTimeout: 15000,
   socketTimeout: 20000,
 });
-
-
-transporter.verify(function (error, success) {
-  if (error) {
-    console.log("SMTP error:", error);
-  } else {
-    console.log("SMTP ready");
-  }
-});
-
 
 //  Send Appointment Email
 export const sendAppointmentEmail = async (

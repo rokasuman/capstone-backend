@@ -5,7 +5,7 @@ import connectDB from "./config/mongodb.js";
 import adminRouter from "./routes/adminRoute.js";
 import doctorRouter from "./routes/doctorRoutes.js";
 import userRouter from "./routes/userRoutes.js";
-import { sendAppointmentEmail } from "./utils/sendEmail.js"; 
+
 
 
 // app configuration 
