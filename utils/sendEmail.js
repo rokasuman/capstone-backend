@@ -66,23 +66,6 @@ export const sendAppointmentEmail = async (
           <p>Thank you,<br/>Nova HealthCare Team</p>
         </div>
       `,
-
-      text: `
-        Appointment Confirmed
-
-        Dear ${name},
-
-        Your appointment has been successfully booked.
-
-        Doctor: ${doctor}
-        Date: ${date}
-        Time: ${time}
-
-        Please arrive 10 minutes early.
-
-        Thank you,
-        Nova Health Team
-      `,
     });
 
     console.log(" Email sent successfully");
