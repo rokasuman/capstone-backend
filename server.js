@@ -23,27 +23,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/user", userRouter);
 
-//  TEST ROUTE FOR EMAIL
-app.get("/test-email", async (req, res) => {
-  try {
-    console.log(" /test-email route hit");
 
-    await sendAppointmentEmail(
-      "roka7362@gmail.com",
-      "Test User",
-      "Dr Test",
-      "10 April",
-      "10:00 AM"
-    );
-
-    console.log("Email function executed");
-    res.send("Email sent");
-
-  } catch (err) {
-    console.error("Email error:", err);
-    res.send(" Email failed");
-  }
-});
 
 app.get("/", (req, res) => {
   res.send("Api is working");
