@@ -16,7 +16,7 @@ export const sendAppointmentEmail = async (
     console.log("before email");
 
     const { data, error } = await resend.emails.send({
-      from: "Nova Health <onboarding@resend.dev>", // you can change later
+      from: "Nova Health <onboarding@resend.dev>", 
       to: email,
       subject: "Appointment Confirmation",
       html: `
