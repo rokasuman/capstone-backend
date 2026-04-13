@@ -1,13 +1,27 @@
 import nodemailer from "nodemailer";
+import dns from "dns";
 
-// Create transporter
+// Force IPv4 
+dns.setDefaultResultOrder("ipv4first");
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
+  secure: false, // required for 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000, 
+});
+
+
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log("SMTP error:", error);
+  } else {
+    console.log("SMTP ready");
+  }
 });
 
 
