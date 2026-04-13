@@ -1,23 +1,8 @@
-import nodemailer from "nodemailer";
-import dns from "dns";
+import { Resend } from "resend";
 
-dns.setDefaultResultOrder("ipv4first");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
- 
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 20000,
-   greetingTimeout: 20000,
-  socketTimeout: 20000,
-});
-
-//  Send Appointment Email
+// Send Appointment Email
 export const sendAppointmentEmail = async (
   email,
   name,
@@ -28,12 +13,12 @@ export const sendAppointmentEmail = async (
   console.log("Email function starting");
 
   try {
-    console.log("before email")
-    await transporter.sendMail({
-      from: `"Nova Health" <${process.env.EMAIL_USER}>`,
+    console.log("before email");
+
+    const { data, error } = await resend.emails.send({
+      from: "Nova Health <onboarding@resend.dev>", // you can change later
       to: email,
       subject: "Appointment Confirmation",
-
       html: `
         <div style="font-family: Arial, sans-serif;">
           <h2 style="color:#2c3e50;">Appointment Confirmed</h2>
@@ -56,8 +41,13 @@ export const sendAppointmentEmail = async (
       `,
     });
 
-    console.log(" Email sent successfully");
+    if (error) {
+      console.error("Resend error:", error);
+      return;
+    }
+
+    console.log("Email sent successfully:", data);
   } catch (error) {
-    console.error(" Email sending failed:", error);
+    console.error("Email sending failed:", error);
   }
 };
